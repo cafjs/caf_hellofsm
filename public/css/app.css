@@ -1,0 +1,44 @@
+.modal-title {
+    text-align: center;
+}
+
+.row-center-align {
+    display: flex;
+    align-items: center;
+}
+
+.big-badge {
+    font-size: 1.2em;
+}
+
+.reddot {
+  height: 50px;
+  width: 50px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.greendot {
+  height: 50px;
+  width: 50px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.yellowdot {
+  height: 50px;
+  width: 50px;
+  background-color: yellow;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.graydot {
+  height: 50px;
+  width: 50px;
+  background-color: gray;
+  border-radius: 50%;
+  display: inline-block;
+}

@@ -1,0 +1,64 @@
+{
+    "name" : "ca",
+    "components" : [
+       {
+            "name": "session",
+             "env" : {
+                 "maxSessions" :"process.env.MAX_SESSIONS||5",
+                 "maxMessages" : "process.env.MAX_MESSAGES||1"
+             }
+        },
+        {
+            "module": "caf_react#plug_ca",
+            "name": "react",
+            "description": "Manages background rendering for this CA.",
+            "env" : {
+                "maxRetries" : "$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay",
+                "coinPlayTime" : "process.env.COIN_PLAY_TIME||900"
+            },
+            "components" : [
+                {
+                    "module": "caf_react#proxy",
+                    "name": "proxy",
+                    "description": "Provides the background rendering API.",
+                    "env" : {
+
+                    }
+                }
+            ]
+        },
+        {
+            "module": "caf_fsm#plug_ca",
+            "name": "fsm",
+            "description": "Manages a FSM for this CA.",
+            "env" : {
+                "maxRetries" : "$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay"
+            },
+            "components" : [
+                {
+                    "module": "caf_fsm#proxy",
+                    "name": "proxy",
+                    "description": "Provides a FSM API.",
+                    "env" : {
+
+                    }
+                }
+            ]
+        },
+        {
+            "name": "handler",
+            "components" : [
+                {
+                    "name": "props",
+                    "env" : {
+                        "divisor": "process.env.DIVISOR||5",
+                        "timeoutInMsec" : "process.env.TIMEOUT_IN_MSEC||15000",
+                        "maxNotif": "process.env.MAX_NOTIF||5"
+                    }
+                }
+            ]
+        }
+    ]
+}
