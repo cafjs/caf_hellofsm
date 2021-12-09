@@ -1,0 +1,47 @@
+{
+    "name": "top",
+    "env" : {
+        "myId" : "process.env.MY_ID||foo-ca1",
+        "appProtocol" : "process.env.APP_PROTOCOL||https",
+        "appPublisher" : "process.env.APP_PUBLISHER||root",
+        "appLocalName" : "process.env.APP_LOCAL_NAME||hellofsm",
+        "appSuffix" : "process.env.APP_SUFFIX||cafjs.com",
+        "interval": "process.env.INTERVAL||5000"
+    },
+    "components": [
+        {
+            "name": "iot",
+            "components": [
+                {
+                    "name": "log",
+                    "env" : {
+                        "logLevel" : "process.env.LOG_LEVEL||DEBUG"
+                    }
+                },
+                {
+                    "name": "queue"
+                },
+                {
+                    "module": "caf_iot_gatt#plug_iot",
+                    "name": "gatt",
+                    "description": "Access to GATT services.",
+                    "env" : {
+                        "maxRetries" : "$._.env.maxRetries",
+                        "retryDelay" : "$._.env.retryDelay",
+                        "findCharactTimeout" : "process.env.FIND_CHARACT_TIMEOUT||10000",
+                        "RWCharactTimeout" : "process.env.RW_CHARACT_TIMEOUT||10000"
+                    },
+                    "components" : [
+                        {
+                            "module": "caf_iot_gatt#proxy_iot",
+                            "name": "proxy",
+                            "description": "Proxy to access GATT services",
+                            "env" : {
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
