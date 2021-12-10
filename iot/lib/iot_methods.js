@@ -17,71 +17,48 @@ limitations under the License.
 
 const myUtils = require('caf_iot').caf_components.myUtils;
 const colorUtil = require('./colorUtil');
+const iotUtil = require('/iot_methods_util');
 const assert = require('assert');
-
-const cleanupDeviceInfo = function(devices) {
-    const result = {};
-    Object.keys(devices).forEach((x) => {
-        result[x] = {
-            uuid: devices[x].uuid,
-            advertisement: myUtils.deepClone(devices[x].advertisement)
-        };
-    });
-    return result;
-};
-
-const UPPER_BITS_MASK = 0xFF00;
-const LOWER_BITS_MASK = 0xFF;
-
-const patchUInt16 = function(buf, offset, val) {
-    const lowerBits = val & LOWER_BITS_MASK;
-    const upperBits = (val & UPPER_BITS_MASK)>>>8;
-    // Little Endian...
-    buf[offset] = lowerBits;
-    buf[offset+1] = upperBits;
-};
-
-const patchUInt8 = function(buf, offset, val) {
-    const lowerBits = val & LOWER_BITS_MASK;
-    buf[offset] = lowerBits;
-};
-
-const unique = function(arr) {
-    return Array.from(new Set(arr));
-};
 
 exports.methods = {
     async __iot_setup__() {
-        // Example of how to store device state in the cloud, i.e.,
-        // the value of `index` from last run downloaded from the cloud.
-        const lastIndex = this.toCloud.get('index');
-        this.state.index = (lastIndex ? lastIndex : 0);
-
-        this.state.index = 0;
         this.scratch.devices = {};
-        this.state.selectedDevice = null;
-        this.state.devicesInfo = {};
-        this.state.deviceType = null;
+        this.state.connectedDevice = null;
+
+        // Mostly for debugging...
+        const lastIndex = this.toCloud.get('index');
+        this.state.index = lastIndex || 0;
 
         return [];
     },
 
     async __iot_loop__() {
+        const cleanupDeviceInfo = function(devices) {
+            const result = {};
+            Object.keys(devices).forEach((x) => {
+                result[x] = {
+                    uuid: devices[x].uuid,
+                    advertisement: myUtils.deepClone(devices[x].advertisement)
+                };
+            });
+            return result;
+        };
+
+        const devicesInfo = cleanupDeviceInfo(this.scratch.devices);
+        if (!myUtils.deepEqual(this.toCloud.get('devicesInfo'), devicesInfo)) {
+            this.toCloud.set('devicesInfo', devicesInfo);
+        }
+
+        // Mostly for debugging...
         this.$.log && this.$.log.debug(
             'Time offset ' +
                 (this.$.cloud.cli && this.$.cloud.cli.getEstimatedTimeOffset())
         );
-
         this.toCloud.set('index', this.state.index);
         this.state.index = this.state.index + 1;
-
-        const now = (new Date()).getTime();
-        this.$.log && this.$.log.debug(now + ' loop: ' + this.state.index);
-
-        if (!myUtils.deepEqual(this.toCloud.get('devices'),
-                               this.state.devicesInfo)) {
-            this.toCloud.set('devices', this.state.devicesInfo);
-        }
+        this.$.log && this.$.log.debug(
+            `${Date.now()} loop: ${this.state.index}`
+        );
 
         return [];
     },
@@ -95,7 +72,7 @@ exports.methods = {
             serializableError.error.message :
             'Cannot Perform Bluetooth Operation';
 
-        await this.$.cloud.cli.setError(serializableError).getPromise();
+        await this.$.cloud.cli.hue_setError(serializableError).getPromise();
         return [];
     },
 
@@ -107,20 +84,18 @@ exports.methods = {
 
         // forget old devices
         this.scratch.devices = {};
-        this.state.devicesInfo = {};
 
-        const services = unique([this.state.config.serviceDiscover,
-                                 this.state.config.serviceControl]);
+        const services = iotUtil.unique([this.state.config.serviceDiscover,
+                                         this.state.config.serviceControl]);
 
         if (typeof window !== 'undefined') {
             // Wait for user click
             await this.$.gatt.findServicesWeb(
                 services, '__iot_foundDevice__', 'confirmScan',
-                'afterConfirmScan', this.state.config.namePrefix
+                'afterConfirmScan', null
             );
         } else {
-            this.$.gatt.findServices(services, '__iot_foundDevice__',
-                                     this.state.config.namePrefix);
+            this.$.gatt.findServices(services, '__iot_foundDevice__', null);
         }
         return [];
     },
@@ -132,15 +107,10 @@ exports.methods = {
                [serviceId.toLowerCase()] :
                []);
 
-        if (this.state.config.namePrefix || // assume OK until connect()
-            services.includes(this.state.config.serviceDiscover
-                              .toLowerCase()) ||
-            (services.includes(this.state.config.serviceControl
-                               .toLowerCase()))) {
+        const sD = this.state.config.serviceDiscover.toLowerCase();
+        const sC = this.state.config.serviceControl.toLowerCase();
+        if (services.includes(sD) || services.includes(sC)) {
             this.scratch.devices[device.uuid] = device;
-            this.state.devicesInfo = cleanupDeviceInfo(this.scratch.devices);
-            const state = {devices: this.state.devicesInfo};
-            await this.$.cloud.cli.syncState(state).getPromise();
         } else {
             this.$.log && this.$.log.debug(
                 'Ignoring device with serviceID: ' +
@@ -154,17 +124,19 @@ exports.methods = {
 
     async connect(deviceId) {
         this.$.log && this.$.log.debug('Selected device ' + deviceId);
-        if (this.state.selectedDevice) {
+        if (this.state.connectedDevice) {
             // Only one connected device
             await this.disconnect();
         }
-        this.state.selectedDevice = deviceId;
+        this.state.connectedDevice = deviceId;
 
         if (this.scratch.devices[deviceId]) {
             try {
-                const charIds = unique([this.state.config.charLight,
-                                        this.state.config.charBrightness,
-                                        this.state.config.charColor]);
+                const charIds = iotUtil.unique([
+                    this.state.config.charLight,
+                    this.state.config.charBrightness,
+                    this.state.config.charColor
+                ]);
                 const {characteristics} =
                     await this.$.gatt.findCharacteristics(
                         this.state.config.serviceControl,
@@ -186,7 +158,7 @@ exports.methods = {
     },
 
     async switchLight(isOn) {
-        if (this.scratch.charLight) {
+        if (this.scratch.charLight && this.state.connectedDevice) {
             this.$.log && this.$.log.debug('switchLight ' +
                                            (isOn ? 'on' : 'off'));
             const buf = Uint8Array.from(isOn ? [0x01] : [0x00]);
@@ -198,11 +170,12 @@ exports.methods = {
     },
 
     async setBrightness(level) {
-        if (this.scratch.charBrightness) {
+        if (this.scratch.charBrightness && this.state.connectedDevice) {
             this.$.log && this.$.log.debug('setBrightness ' + level);
             // level between 1 and 254 for philips hue
             level = colorUtil.clipBrightness(level);
-            const buf = Uint8Array.from([level & LOWER_BITS_MASK]);
+            const buf = Uint8Array.from([0x00]);
+            iotUtil.patchUInt8(buf, 0, level);
             await this.$.gatt.write(this.scratch.charBrightness, buf);
             return [];
         } else {
@@ -211,7 +184,7 @@ exports.methods = {
     },
 
     async setColor(color) {
-        if (this.scratch.charColor) {
+        if (this.scratch.charColor && this.state.connectedDevice) {
             this.$.log && this.$.log.debug('setColor ' +
                                            JSON.stringify(color));
             color = colorUtil.clipColor(color);
@@ -219,8 +192,8 @@ exports.methods = {
                                          0x10, 0x27, 0xe2, 0x50,
                                          0x05, 0x02, 0x01, 0x00]);
             const [x, y] = colorUtil.rgbToXY(color.r, color.g, color.b);
-            patchUInt16(buf, 5, x);
-            patchUInt16(buf, 7, y);
+            iotUtil.patchUInt16(buf, 5, x);
+            iotUtil.patchUInt16(buf, 7, y);
             await this.$.gatt.write(this.scratch.charColor, buf);
             return [];
         } else {
@@ -230,14 +203,14 @@ exports.methods = {
 
     async disconnect() {
         this.$.log && this.$.log.debug('Calling disconnect()');
-        const device = this.state.selectedDevice &&
-                this.scratch.devices[this.state.selectedDevice];
+        const device = this.state.connectedDevice &&
+                this.scratch.devices[this.state.connectedDevice];
         if (device) {
             this.$.log && this.$.log.debug('Disconnect device ' +
-                                           this.state.selectedDevice);
+                                           this.state.connectedDevice);
             await this.$.gatt.disconnect(device);
         }
-        this.state.selectedDevice = null;
+        this.state.connectedDevice = null;
         return [];
     },
 
@@ -246,7 +219,6 @@ exports.methods = {
         await this.disconnect();
         await this.$.gatt.reset();
         this.scratch.devices = {};
-        this.state.devicesInfo = {};
         return [];
     }
 };

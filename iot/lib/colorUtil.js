@@ -24,10 +24,6 @@ const GREEN_Y = 0.74383;
 const BLUE_X = 0.167;
 const BLUE_Y= 0.04;
 
-/* Philips hue color min/max values of color temperature for white light.*/
-const MIN_TEMP = 150;
-const MAX_TEMP = 500;
-
 /* Philips hue color min/max values of brightness.*/
 const MIN_BRIGHTNESS = 1;
 const MAX_BRIGHTNESS = 254;

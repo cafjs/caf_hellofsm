@@ -29,6 +29,13 @@
             ]
         },
         {
+            "name": "session",
+             "env" : {
+                 "maxSessions" :"process.env.MAX_SESSIONS||5",
+                 "maxMessages" : "process.env.MAX_MESSAGES||1"
+             }
+        },
+        {
             "module": "caf_fsm#plug_ca",
             "name": "fsm",
             "description": "Manages a FSM for this CA.",
@@ -53,9 +60,15 @@
                 {
                     "name": "props",
                     "env" : {
-                        "divisor": "process.env.DIVISOR||5",
-                        "timeoutInMsec" : "process.env.TIMEOUT_IN_MSEC||15000",
-                        "maxNotif": "process.env.MAX_NOTIF||5"
+                        "PHILIPS_HUE": {
+                            "serviceDiscover": "process.env.PHILIPS_HUE_SERVICE_DISCOVER||FE0F",
+                            "serviceControl": "process.env.PHILIPS_HUE_SERVICE_CONTROL||932c32bd-0000-47a2-835a-a8d455b859dd",
+                            "charLight": "process.env.PHILIPS_HUE_CHAR_LIGHT||932c32bd-0002-47a2-835a-a8d455b859dd",
+                            "charBrightness": "process.env.PHILIPS_HUE_CHAR_BRIGHTNESS||932c32bd-0003-47a2-835a-a8d455b859dd",
+                            "charColor": "process.env.PHILIPS_HUE_CHAR_COLOR||932c32bd-0007-47a2-835a-a8d455b859dd",
+                            "namePrefix" : "process.env.PHILIPS_HUE_NAME_PREFIX||null"
+                        },
+                        "timeoutInMsec" : "process.env.TIMEOUT_IN_MSEC||15000"
                     }
                 }
             ]
