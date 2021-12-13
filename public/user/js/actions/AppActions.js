@@ -45,9 +45,8 @@ const AppActions = {
     },
     async init(ctx) {
         try {
-             const tok =  caf_cli.extractTokenFromURL(window.location.href);
-            const data = await ctx.session.hello(ctx.session.getCacheKey(), tok)
-                    .getPromise();
+            const data = await ctx.session.hello(ctx.session.getCacheKey(),
+                                                 null).getPromise();
             updateF(ctx.store, data);
         } catch (err) {
             errorF(ctx.store, err);
@@ -71,8 +70,7 @@ const AppActions = {
 };
 
 const EXTERNAL_METHODS = [
-    'hue_setDaemon', 'hue_findDevices', 'hue_connect', 'hue_disconnect',
-    'getState', 'hue_reset', 'hue_setError'
+    'tick', 'follow', 'unfollow', 'getState', 'reset'
 ];
 
 EXTERNAL_METHODS.forEach(function(x) {

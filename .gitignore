@@ -1,9 +1,10 @@
 *~
 node_modules
+staticArtifacts.js
 coverage
 build.js
 build.min.js
-all.tgz
+build-iot.js
+build-iot.min.js
+*.tgz
 npm-shrinkwrap.json
-
-

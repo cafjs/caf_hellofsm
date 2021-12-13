@@ -17,7 +17,7 @@ limitations under the License.
 
 const myUtils = require('caf_iot').caf_components.myUtils;
 const colorUtil = require('./colorUtil');
-const iotUtil = require('/iot_methods_util');
+const iotUtil = require('./iot_methods_util');
 const assert = require('assert');
 
 exports.methods = {

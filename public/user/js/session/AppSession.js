@@ -3,12 +3,10 @@ const AppActions = require('../actions/AppActions');
 
 exports.connect = function(ctx) {
     return new Promise((resolve, reject) => {
-        const sessionId = `hue${cli.randomString(8)}`;
         window.location.href = cli.patchURL(window.location.href, {
-            session: sessionId
+            session: `user${cli.randomString(8)}`
         });
 
-        AppActions.setLocalState(ctx, {sessionId});
         const session = new cli.Session(window.location.href);
 
         session.onopen = async function() {

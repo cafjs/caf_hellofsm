@@ -4,9 +4,13 @@ const React = require('react');
 const rB = require('react-bootstrap');
 const AppActions = require('../actions/AppActions');
 const AppStatus = require('./AppStatus');
-const Lights = require('./Lights');
-const Follow = require('./Follow');
+const Find = require('./Find');
+const UserApp = require('./UserApp');
 const DisplayError = require('./DisplayError');
+const DisplayURL = require('./DisplayURL');
+const DisplaySpawn = require('./DisplaySpawn');
+const DisplaySelectDevice = require('./DisplaySelectDevice');
+const Daemon = require('./Daemon');
 
 const cE = React.createElement;
 
@@ -38,14 +42,24 @@ class MyApp extends React.Component {
     }
 
     render() {
-        const following = this.state.linkedTo ?
-            this.state.linkedTo.slice(0, -7) :
-            'NOBODY';
-
         return cE('div', {className: 'container-fluid'},
                   cE(DisplayError, {
                       ctx: this.props.ctx,
-                      error: this.state.error
+                      hue_error: this.state.hue_error
+                  }),
+                  cE(DisplayURL, {
+                      ctx: this.props.ctx,
+                      displayURL: this.state.displayURL
+                  }),
+                  cE(DisplaySpawn, {
+                      ctx: this.props.ctx,
+                      displaySpawn: this.state.displaySpawn
+                  }),
+                  cE(DisplaySelectDevice, {
+                      ctx: this.props.ctx,
+                      devicesInfo: this.state.hue_devicesInfo,
+                      selectedDevice: this.state.hue_selectedDevice,
+                      displaySelectDevice: this.state.displaySelectDevice
                   }),
                   cE(rB.Panel, null,
                      cE(rB.Panel.Heading, null,
@@ -74,25 +88,27 @@ class MyApp extends React.Component {
                      cE(rB.Panel.Body, null,
                         cE(rB.Panel, null,
                            cE(rB.Panel.Heading, null,
-                              cE(rB.Panel.Title, null, 'Traffic lights')
+                              cE(rB.Panel.Title, null, 'Add Philips Hue bulb')
                              ),
                            cE(rB.Panel.Body, null,
-                              cE(Lights, {
+                              cE(Daemon, {
                                   ctx: this.props.ctx,
-                                  light: this.state.light
+                                  inIframe : this.state.inIframe,
+                                  daemon: this.state.hue_daemon,
+                                  sessionId: this.state.sessionId
+                              }),
+                              cE(Find, {
+                                  ctx: this.props.ctx,
+                                  inIframe : this.state.inIframe,
+                                  daemon: this.state.hue_daemon,
+                                  selectedDevice: this.state.hue_selectedDevice,
+                                  devicesInfo: this.state.hue_devicesInfo,
                               })
                              )
                           ),
-                        cE(rB.Panel, null,
-                           cE(rB.Panel.Heading, null,
-                              cE(rB.Panel.Title, null, `Following ${following}`)
-                             ),
-                           cE(rB.Panel.Body, null,
-                              cE(Follow, {
-                                  ctx: this.props.ctx
-                              })
-                             )
-                          )
+                        cE(UserApp, {
+                            ctx: this.props.ctx
+                        })
                        )
                     )
                  );

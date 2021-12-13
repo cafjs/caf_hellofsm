@@ -13,11 +13,11 @@ class DisplayError extends React.Component {
     }
 
     doDismissError(ev) {
-        AppActions.hue_setError(this.props.ctx, null);
+        AppActions.resetError(this.props.ctx);
     }
 
     render() {
-        return cE(rB.Modal, {show: !!this.props.hue_error,
+        return cE(rB.Modal, {show: !!this.props.error,
                              onHide: this.doDismissError,
                              animation: false},
                   cE(rB.Modal.Header, {
@@ -28,7 +28,7 @@ class DisplayError extends React.Component {
                   cE(rB.ModalBody, null,
                      cE('p', null, 'Message:'),
                      cE(rB.Alert, {bsStyle: 'danger'},
-                        this.props.hue_error && this.props.hue_error.message)
+                        this.props.error && this.props.error.message)
                     ),
                   cE(rB.Modal.Footer, null,
                      cE(rB.Button, {onClick: this.doDismissError}, 'Continue')
