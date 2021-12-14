@@ -13,6 +13,14 @@ class DisplaySpawn extends React.Component {
         this.standaloneURL = null;
         if (typeof window !== 'undefined') {
             const parsedURL = url.parse(window.location.href);
+             /* Web Bluetooth can only be used with https or localhost.
+              *  Chrome allows subdomains in localhost, i.e.,
+              *  root-helloiot.localhost, and wih local debugging the app
+              *  is also exposed on host port 3003 by default.
+              *
+              */
+            parsedURL.host = parsedURL.host.replace('vcap.me',
+                                                    'localhost:3003');
             delete parsedURL.search; // no cache
             this.standaloneURL = url.format(parsedURL);
         }

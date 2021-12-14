@@ -28,8 +28,8 @@
                     "env" : {
                         "maxRetries" : "$._.env.maxRetries",
                         "retryDelay" : "$._.env.retryDelay",
-                        "findCharactTimeout" : "process.env.FIND_CHARACT_TIMEOUT||10000",
-                        "RWCharactTimeout" : "process.env.RW_CHARACT_TIMEOUT||10000"
+                        "findCharactTimeout" : "process.env.FIND_CHARACT_TIMEOUT||20000",
+                        "RWCharactTimeout" : "process.env.RW_CHARACT_TIMEOUT||20000"
                     },
                     "components" : [
                         {
