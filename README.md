@@ -4,6 +4,6 @@ Co-design cloud assistants with your web app and IoT devices.
 
 See https://www.cafjs.com
 
-## A simple finite state machine with xstate and Caf.js
+## Example IoT app with xstate and Caf.js
 
-A traffic light that can be synchronized with other lights.
+Build a traffic light with a Bluetooth color bulb (Philips Hue), and synchronize it with another hundred thousand bulbs across the world.
