@@ -19,7 +19,7 @@ class DisplaySpawn extends React.Component {
               *  is also exposed on host port 3003 by default.
               *
               */
-            parsedURL.host = parsedURL.host.replace('vcap.me',
+            parsedURL.host = parsedURL.host.replace('localtest.me',
                                                     'localhost:3003');
             delete parsedURL.search; // no cache
             this.standaloneURL = url.format(parsedURL);
